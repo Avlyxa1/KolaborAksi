@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Firebase service account (JANGAN commit ke repo)
+**/serviceAccountKey.json
+**/firebase-service-account*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# Prisma
+backend/prisma/migrations/**/migration_lock.toml
+
+# Docker
+docker-compose.override.yml
+
+# Design templates (keep folder, ignore large files)
+design-templates/stitch/*.psd
+design-templates/stitch/*.sketch
+
+# Agent files
+DESIGN_AGENT.md
+CODING_AGENT.md
+"IMPLEMENTATION_PLAN (1).md"
