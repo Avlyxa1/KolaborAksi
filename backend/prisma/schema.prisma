@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +8,43 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum Role {
+  admin
+  panitia
+  relawan
+
+  @@map("role")
+}
+
+enum AuthProvider {
+  google
+  email
+
+  @@map("auth_provider")
+}
+
+// ============================================
+// Models
+// ============================================
+
+model User {
+  id           String       @id @default(cuid())
+  nama         String
+  email        String       @unique
+  password     String?      // nullable — kosong jika user daftar via Google
+  firebaseUid  String?      @unique @map("firebase_uid")
+  photoUrl     String?      @map("photo_url")
+  authProvider AuthProvider @default(email) @map("auth_provider")
+  role         Role         @default(relawan)
+  refreshToken String?      @map("refresh_token")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@map("users")
 }

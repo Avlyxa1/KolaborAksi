@@ -43,3 +43,7 @@ design-templates/stitch/*.sketch
 DESIGN_AGENT.md
 CODING_AGENT.md
 "IMPLEMENTATION_PLAN (1).md"
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
