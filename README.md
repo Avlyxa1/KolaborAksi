@@ -4,21 +4,6 @@
 
 Platform manajemen relawan dan event komunitas. KolaborAksi menghubungkan organisasi/panitia yang membuka event volunteering dengan relawan yang ingin berkontribusi, lengkap dengan alur pendaftaran, verifikasi jam kontribusi, sertifikat otomatis, dan dashboard analitik partisipasi.
 
-Status: dalam pengembangan aktif.
-
-## Daftar Isi
-
-- [Latar Belakang](#latar-belakang)
-- [Fitur Utama](#fitur-utama)
-- [Tech Stack](#tech-stack)
-- [Arsitektur Singkat](#arsitektur-singkat)
-- [Struktur Folder](#struktur-folder)
-- [Cara Menjalankan Secara Lokal](#cara-menjalankan-secara-lokal)
-- [Environment Variables](#environment-variables)
-- [Roadmap](#roadmap)
-- [Demo & Screenshot](#demo--screenshot)
-- [Lisensi](#lisensi)
-
 ## Latar Belakang
 
 Banyak organisasi komunitas masih mengelola pendaftaran relawan dan dokumentasi jam kontribusi secara manual melalui spreadsheet atau formulir terpisah. KolaborAksi dibangun untuk menyatukan proses tersebut dalam satu platform: pembuatan event, pendaftaran relawan, verifikasi jam kontribusi, penerbitan sertifikat, hingga pelaporan partisipasi.
@@ -70,5 +55,3 @@ Banyak organisasi komunitas masih mengelola pendaftaran relawan dan dokumentasi 
 - Backend: Railway / Render
 - Frontend: Vercel / Netlify
 - Database: Railway / PlanetScale (MySQL)
-
-## Arsitektur Singkat
