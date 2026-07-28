@@ -1,23 +1,60 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEventById, type Event } from '../services/eventService';
-import { Calendar, MapPin, Users, ArrowLeft, Building, Share2 } from 'lucide-react';
+import { getMyRegistrations, createRegistration, type Registration } from '../services/registrationService';
+import { useAuthStore } from '../store/authStore';
+import { Calendar, MapPin, Users, ArrowLeft, Building, Share2, X } from 'lucide-react';
 import Badge from '../components/Badge';
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
+  const [registration, setRegistration] = useState<Registration | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  const [showModal, setShowModal] = useState(false);
+  const [alasan, setAlasan] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     if (id) {
-      getEventById(id)
-        .then((res) => setEvent(res.data))
-        .catch((err) => setError(err.response?.data?.message || 'Gagal memuat event'))
-        .finally(() => setIsLoading(false));
+      const fetchEventData = async () => {
+        try {
+          const res = await getEventById(id);
+          setEvent(res.data);
+          
+          if (user) {
+            const regRes = await getMyRegistrations(id);
+            if (regRes && regRes.length > 0) {
+              setRegistration(regRes[0]);
+            }
+          }
+        } catch (err: any) {
+          setError(err.response?.data?.message || 'Gagal memuat event');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchEventData();
     }
-  }, [id]);
+  }, [id, user]);
+
+  const handleRegister = async () => {
+    if (!id) return;
+    setIsSubmitting(true);
+    try {
+      const newReg = await createRegistration(id, alasan);
+      setRegistration(newReg);
+      setShowModal(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Gagal mendaftar');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Memuat...</div>;
@@ -153,18 +190,68 @@ export default function EventDetailPage() {
               </div>
 
               {/* Action Button */}
-              <button 
-                disabled={event.status !== 'published'}
-                className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none shadow-sm cursor-pointer"
-              >
-                {event.status === 'published' ? 'Daftar Sekarang' : 'Pendaftaran Ditutup'}
-              </button>
+              {!user ? (
+                <Link to="/login" className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover transition-colors block text-center shadow-sm">
+                  Login untuk Daftar
+                </Link>
+              ) : registration ? (
+                <div className="text-center p-3 rounded-xl border border-border bg-surface-dim">
+                  <p className="text-sm text-text-secondary mb-1">Status Pendaftaran:</p>
+                  <p className="font-semibold text-text-primary capitalize">{registration.status}</p>
+                </div>
+              ) : (
+                <button 
+                  disabled={event.status !== 'published' || event.kuota > 0 && event.kuota <= 0 /* TODO real kuota check */}
+                  onClick={() => setShowModal(true)}
+                  className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none shadow-sm cursor-pointer"
+                >
+                  {event.status === 'published' ? 'Daftar Sekarang' : 'Pendaftaran Ditutup'}
+                </button>
+              )}
               
             </div>
           </div>
 
         </div>
       </div>
+
+      {/* Registration Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-surface w-full max-w-md rounded-2xl p-6 shadow-lg border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-text-primary">Daftar Event</h3>
+              <button onClick={() => setShowModal(false)} className="text-text-secondary hover:text-text-primary bg-transparent border-none cursor-pointer">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text-secondary mb-1">Alasan Mengikuti (Opsional)</label>
+              <textarea 
+                value={alasan}
+                onChange={(e) => setAlasan(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px] resize-y"
+                placeholder="Ceritakan sedikit mengapa Anda tertarik..."
+              ></textarea>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button 
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg font-medium text-text-secondary hover:bg-surface-dim transition-colors border-none bg-transparent cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleRegister}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg font-medium text-white bg-primary hover:bg-primary-hover transition-colors border-none cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Mengirim...' : 'Kirim Pendaftaran'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

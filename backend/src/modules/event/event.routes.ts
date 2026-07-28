@@ -10,12 +10,16 @@ import {
 import { authenticate } from '../../middlewares/authenticate.js';
 import { authorize } from '../../middlewares/authorize.js';
 import { upload } from '../../utils/upload.js';
+import { createRegistration } from '../registration/registration.controller.js';
 
 const router = Router();
 
 // Public routes
 router.get('/', handleGetAll);
 router.get('/:id', handleGetById);
+
+// Protected routes (any authenticated user)
+router.post('/:eventId/registrations', authenticate, createRegistration);
 
 // Protected routes (admin/panitia only)
 router.use(authenticate);

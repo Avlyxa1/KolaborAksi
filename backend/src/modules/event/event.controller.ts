@@ -62,7 +62,7 @@ export async function handleGetAll(req: Request, res: Response): Promise<void> {
 export async function handleGetById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const result = await eventService.getEventById(id!);
+    const result = await eventService.getEventById(id as string);
     sendSuccess(res, result, 'Berhasil mengambil data event');
   } catch (error) {
     sendError(
@@ -83,7 +83,7 @@ export async function handleUpdate(req: Request, res: Response): Promise<void> {
       input.gambarUrl = `/uploads/${req.file.filename}`;
     }
 
-    const result = await eventService.updateEvent(id!, input, userId);
+    const result = await eventService.updateEvent(id as string, input, userId);
     sendSuccess(res, result, 'Event berhasil diperbarui');
   } catch (error) {
     if (error instanceof ZodError) {
@@ -107,7 +107,7 @@ export async function handleUpdateStatus(req: Request, res: Response): Promise<v
     const input = updateEventStatusSchema.parse(req.body);
     const userId = (req as Request & { userId: string }).userId;
 
-    const result = await eventService.updateEventStatus(id!, input, userId);
+    const result = await eventService.updateEventStatus(id as string, input, userId);
     sendSuccess(res, result, 'Status event berhasil diperbarui');
   } catch (error) {
     if (error instanceof ZodError) {
@@ -130,7 +130,7 @@ export async function handleDelete(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const userId = (req as Request & { userId: string }).userId;
 
-    await eventService.deleteEvent(id!, userId);
+    await eventService.deleteEvent(id as string, userId);
     sendSuccess(res, null, 'Event berhasil dihapus');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus event';

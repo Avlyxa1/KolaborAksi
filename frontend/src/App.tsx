@@ -6,12 +6,14 @@ import PublicLayout from './layouts/PublicLayout';
 import LoginPage from './pages/LoginPage';
 import EventListPage from './pages/EventListPage';
 import EventDetailPage from './pages/EventDetailPage';
+import MyEventsPage from './pages/MyEventsPage';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
 import OverviewPage from './pages/dashboard/OverviewPage';
 import ManageEventsPage from './pages/dashboard/ManageEventsPage';
 import EventFormPage from './pages/dashboard/EventFormPage';
+import ManageRegistrationsPage from './pages/dashboard/ManageRegistrationsPage';
 
 // Halaman sementara untuk root
 function HomePlaceholder() {
@@ -49,6 +51,11 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/events" element={<EventListPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/my-events" element={
+            <ProtectedRoute>
+              <MyEventsPage />
+            </ProtectedRoute>
+          } />
         </Route>
 
         {/* Protected Dashboard Routes */}
@@ -63,6 +70,7 @@ function App() {
           <Route index element={<OverviewPage />} />
           <Route path="events" element={<ManageEventsPage />} />
           <Route path="events/create" element={<EventFormPage />} />
+          <Route path="events/:eventId/registrations" element={<ManageRegistrationsPage />} />
         </Route>
 
         {/* Catch-all redirect */}

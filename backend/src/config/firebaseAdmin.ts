@@ -16,8 +16,8 @@ function initializeFirebaseAdmin(): App {
 
   // Try loading from service-account.json file
   try {
-    const require = createRequire(import.meta.url);
-    const serviceAccount = require('../../service-account.json');
+    const require = createRequire(process.cwd() + '/');
+    const serviceAccount = require('./service-account.json');
     return initializeApp({
       credential: cert(serviceAccount),
     });

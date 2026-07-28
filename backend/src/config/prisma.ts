@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -8,8 +8,6 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    // Prisma Postgres (prisma+postgres:// URL) requires accelerateUrl
-    accelerateUrl: process.env.DATABASE_URL,
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']

@@ -4,6 +4,7 @@ import path from 'path';
 import authRoutes from './modules/auth/auth.routes.js';
 import organizationRoutes from './modules/organization/organization.routes.js';
 import eventRoutes from './modules/event/event.routes.js';
+import registrationRoutes from './modules/registration/registration.routes.js';
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/events', eventRoutes);
-
+app.use('/api/registrations', registrationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

@@ -54,7 +54,7 @@ export async function handleGetAll(_req: Request, res: Response): Promise<void> 
 export async function handleGetById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const result = await orgService.getOrganizationById(id!);
+    const result = await orgService.getOrganizationById(id as string);
     sendSuccess(res, result, 'Berhasil mengambil data organisasi');
   } catch (error) {
     sendError(
@@ -75,7 +75,7 @@ export async function handleUpdate(req: Request, res: Response): Promise<void> {
       input.logoUrl = `/uploads/${req.file.filename}`;
     }
 
-    const result = await orgService.updateOrganization(id!, input, userId);
+    const result = await orgService.updateOrganization(id as string, input, userId);
     sendSuccess(res, result, 'Organisasi berhasil diperbarui');
   } catch (error) {
     if (error instanceof ZodError) {
@@ -98,7 +98,7 @@ export async function handleDelete(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const userId = (req as Request & { userId: string }).userId;
 
-    await orgService.deleteOrganization(id!, userId);
+    await orgService.deleteOrganization(id as string, userId);
     sendSuccess(res, null, 'Organisasi berhasil dihapus');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus organisasi';

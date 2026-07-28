@@ -29,7 +29,7 @@ export default function ManageEventsPage() {
     try {
       await deleteEvent(id);
       fetchEvents();
-    } catch (error) {
+    } catch {
       alert('Gagal menghapus event');
     }
   };
@@ -38,7 +38,7 @@ export default function ManageEventsPage() {
     try {
       await updateEventStatus(id, newStatus);
       fetchEvents();
-    } catch (error) {
+    } catch {
       alert('Gagal merubah status event');
     }
   };
