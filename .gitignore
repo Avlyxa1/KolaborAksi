@@ -11,6 +11,8 @@ build/
 # Firebase service account (JANGAN commit ke repo)
 **/serviceAccountKey.json
 **/firebase-service-account*.json
+**/service-account.json
+service-account.json
 
 # IDE
 .vscode/

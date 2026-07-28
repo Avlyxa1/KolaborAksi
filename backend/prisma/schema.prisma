@@ -37,7 +37,7 @@ model User {
   id           String       @id @default(cuid())
   nama         String
   email        String       @unique
-  password     String?      // nullable — kosong jika user daftar via Google
+  password     String? // nullable — kosong jika user daftar via Google
   firebaseUid  String?      @unique @map("firebase_uid")
   photoUrl     String?      @map("photo_url")
   authProvider AuthProvider @default(email) @map("auth_provider")
@@ -46,5 +46,51 @@ model User {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
+  organizations Organization[]
+
   @@map("users")
+}
+
+enum EventStatus {
+  draft
+  published
+  selesai
+  dibatalkan
+
+  @@map("event_status")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  nama      String
+  deskripsi String   @db.Text
+  logoUrl   String?  @map("logo_url")
+  ownerId   String   @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner  User    @relation(fields: [ownerId], references: [id])
+  events Event[]
+
+  @@map("organizations")
+}
+
+model Event {
+  id             String      @id @default(cuid())
+  judul          String
+  deskripsi      String      @db.Text
+  lokasi         String
+  tanggalMulai   DateTime    @map("tanggal_mulai")
+  tanggalSelesai DateTime    @map("tanggal_selesai")
+  kuota          Int         @default(0)
+  kategori       String
+  gambarUrl      String?     @map("gambar_url")
+  status         EventStatus @default(draft)
+  organizationId String      @map("organization_id")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("events")
 }

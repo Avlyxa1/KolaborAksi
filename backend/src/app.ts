@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import authRoutes from './modules/auth/auth.routes.js';
+import organizationRoutes from './modules/organization/organization.routes.js';
+import eventRoutes from './modules/event/event.routes.js';
 
 const app = express();
 
@@ -9,8 +12,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files for uploads
+app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/organizations', organizationRoutes);
+app.use('/api/events', eventRoutes);
+
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

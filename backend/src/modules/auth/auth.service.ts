@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { admin } from '../../config/firebaseAdmin.js';
+import { firebaseAuth } from '../../config/firebaseAdmin.js';
 import prisma from '../../config/prisma.js';
 import {
   generateAccessToken,
@@ -62,7 +62,7 @@ async function issueTokens(user: { id: string; email: string; role: string }) {
 
 export async function googleAuth(input: GoogleAuthInput) {
   // 1. Verify Firebase ID token
-  const decodedToken = await admin.auth().verifyIdToken(input.idToken);
+  const decodedToken = await firebaseAuth.verifyIdToken(input.idToken);
   const { uid, email, name, picture } = decodedToken;
 
   if (!email) {

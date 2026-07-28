@@ -1,46 +1,52 @@
-import * as admin from 'firebase-admin';
+import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { createRequire } from 'module';
 
 /**
  * Initialize Firebase Admin SDK for server-side token verification.
  *
- * Expects FIREBASE_SERVICE_ACCOUNT_KEY as a JSON string in environment variables.
- * In development, you can also place the service account JSON file locally
- * and set GOOGLE_APPLICATION_CREDENTIALS instead.
+ * Reads the service-account.json file from the project root (backend/).
  */
-function initializeFirebaseAdmin(): admin.app.App {
+function initializeFirebaseAdmin(): App {
   // Already initialized — return existing app
-  if (admin.apps.length > 0) {
-    return admin.apps[0]!;
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    return existingApps[0]!;
   }
 
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-  if (serviceAccountKey) {
-    try {
-      const serviceAccount = JSON.parse(serviceAccountKey);
-      return admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-    } catch {
-      console.error(
-        '[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. ' +
-          'Make sure it is a valid JSON string.',
-      );
-      throw new Error('Invalid FIREBASE_SERVICE_ACCOUNT_KEY');
+  // Try loading from service-account.json file
+  try {
+    const require = createRequire(import.meta.url);
+    const serviceAccount = require('../../service-account.json');
+    return initializeApp({
+      credential: cert(serviceAccount),
+    });
+  } catch {
+    // Fallback: try env variable
+    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (serviceAccountKey) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountKey);
+        return initializeApp({
+          credential: cert(serviceAccount),
+        });
+      } catch {
+        console.error(
+          '[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY.',
+        );
+        throw new Error('Invalid FIREBASE_SERVICE_ACCOUNT_KEY');
+      }
     }
   }
 
-  // Fallback: use GOOGLE_APPLICATION_CREDENTIALS (file path) or default credentials
-  console.warn(
-    '[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_KEY not set. ' +
-      'Falling back to application default credentials.',
+  throw new Error(
+    '[Firebase Admin] No service account found. ' +
+      'Place service-account.json in backend/ or set FIREBASE_SERVICE_ACCOUNT_KEY env variable.',
   );
-  return admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
 }
 
-const firebaseAdmin = initializeFirebaseAdmin();
+const firebaseApp = initializeFirebaseAdmin();
+const firebaseAuth = getAuth(firebaseApp);
 
-export default firebaseAdmin;
-export { admin };
+export default firebaseApp;
+export { firebaseAuth };
