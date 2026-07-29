@@ -29,6 +29,9 @@ export default function Navbar() {
             </Link>
             {user ? (
               <div className="flex items-center gap-2 ml-4 border-l pl-4 border-gray-200">
+                <Link to="/my-certificates" className="text-sm font-medium text-text-primary hover:text-primary transition-colors flex items-center gap-2 px-3 py-2 rounded-md">
+                  Sertifikat Saya
+                </Link>
                 <Link to="/dashboard" className="text-sm font-medium text-text-primary hover:text-primary transition-colors flex items-center gap-2 px-3 py-2 rounded-md">
                   <UserIcon size={16} />
                   Dashboard

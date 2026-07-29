@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import EventListPage from './pages/EventListPage';
 import EventDetailPage from './pages/EventDetailPage';
 import MyEventsPage from './pages/MyEventsPage';
+import MyCertificatesPage from './pages/MyCertificatesPage';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -54,6 +55,11 @@ function App() {
           <Route path="/my-events" element={
             <ProtectedRoute>
               <MyEventsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/my-certificates" element={
+            <ProtectedRoute>
+              <MyCertificatesPage />
             </ProtectedRoute>
           } />
         </Route>

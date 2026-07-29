@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEventRegistrations, updateRegistrationStatus, type Registration } from '../../services/registrationService';
-import { ArrowLeft, Check, X, Search, FileText } from 'lucide-react';
+import { verifyVolunteerHours } from '../../services/volunteerHourService';
+import { ArrowLeft, Check, X, Search, FileText, Clock, Award } from 'lucide-react';
 import Badge from '../../components/Badge';
 
 export default function ManageRegistrationsPage() {
@@ -11,6 +12,15 @@ export default function ManageRegistrationsPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+
+  // Volunteer hours modal state
+  const [hoursModal, setHoursModal] = useState<{ open: boolean; registration: Registration | null }>({
+    open: false,
+    registration: null,
+  });
+  const [hoursInput, setHoursInput] = useState('');
+  const [hoursNote, setHoursNote] = useState('');
+  const [isSubmittingHours, setIsSubmittingHours] = useState(false);
 
   useEffect(() => {
     if (eventId) {
@@ -35,6 +45,57 @@ export default function ManageRegistrationsPage() {
     }
   };
 
+  const openHoursModal = (reg: Registration) => {
+    setHoursModal({ open: true, registration: reg });
+    setHoursInput(reg.volunteerHour?.jumlahJam?.toString() || '');
+    setHoursNote(reg.volunteerHour?.catatan || '');
+  };
+
+  const closeHoursModal = () => {
+    setHoursModal({ open: false, registration: null });
+    setHoursInput('');
+    setHoursNote('');
+  };
+
+  const handleSubmitHours = async () => {
+    if (!hoursModal.registration) return;
+
+    const jam = parseFloat(hoursInput);
+    if (isNaN(jam) || jam <= 0) {
+      alert('Masukkan jumlah jam yang valid (lebih dari 0)');
+      return;
+    }
+
+    setIsSubmittingHours(true);
+    try {
+      const result = await verifyVolunteerHours(
+        hoursModal.registration.id,
+        jam,
+        hoursNote || undefined,
+      );
+
+      // Update local state with the new volunteer hour data
+      setRegistrations((prev) =>
+        prev.map((reg) => {
+          if (reg.id === hoursModal.registration!.id) {
+            return {
+              ...reg,
+              volunteerHour: result,
+              certificate: reg.certificate ?? { id: 'pending', certificateCode: '' },
+            };
+          }
+          return reg;
+        }),
+      );
+
+      closeHoursModal();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Gagal memverifikasi jam kontribusi');
+    } finally {
+      setIsSubmittingHours(false);
+    }
+  };
+
   const filteredRegistrations = registrations.filter(reg => 
     reg.user?.nama.toLowerCase().includes(searchTerm.toLowerCase()) || 
     reg.user?.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,7 +113,7 @@ export default function ManageRegistrationsPage() {
         </Link>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Kelola Peserta</h1>
-          <p className="text-text-secondary">Persetujuan pendaftaran relawan untuk event ini.</p>
+          <p className="text-text-secondary">Persetujuan pendaftaran & verifikasi jam kontribusi relawan.</p>
         </div>
       </div>
 
@@ -85,13 +146,14 @@ export default function ManageRegistrationsPage() {
                 <th className="px-6 py-4 font-medium">Waktu Daftar</th>
                 <th className="px-6 py-4 font-medium">Alasan</th>
                 <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium">Jam Kontribusi</th>
                 <th className="px-6 py-4 font-medium text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRegistrations.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-text-secondary">
+                  <td colSpan={6} className="px-6 py-12 text-center text-text-secondary">
                     Tidak ada peserta yang ditemukan.
                   </td>
                 </tr>
@@ -135,27 +197,54 @@ export default function ManageRegistrationsPage() {
                         {reg.status === 'pending' ? 'Menunggu' : reg.status === 'approved' ? 'Diterima' : 'Ditolak'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      {reg.status === 'pending' && (
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            disabled={isUpdating === reg.id}
-                            onClick={() => handleUpdateStatus(reg.id, 'approved')}
-                            className="p-1.5 bg-success/10 text-success rounded-md hover:bg-success hover:text-white transition-colors disabled:opacity-50"
-                            title="Terima"
-                          >
-                            <Check size={18} />
-                          </button>
-                          <button 
-                            disabled={isUpdating === reg.id}
-                            onClick={() => handleUpdateStatus(reg.id, 'rejected')}
-                            className="p-1.5 bg-danger/10 text-danger rounded-md hover:bg-danger hover:text-white transition-colors disabled:opacity-50"
-                            title="Tolak"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
+                    {/* Jam Kontribusi Column */}
+                    <td className="px-6 py-4">
+                      {reg.status === 'approved' ? (
+                        reg.volunteerHour?.status === 'verified' ? (
+                          <div className="flex items-center gap-1.5">
+                            <Award size={14} className="text-green-600" />
+                            <span className="font-semibold text-green-700">{reg.volunteerHour.jumlahJam} jam</span>
+                          </div>
+                        ) : (
+                          <span className="text-text-muted text-xs italic">Belum diverifikasi</span>
+                        )
+                      ) : (
+                        <span className="text-text-muted">-</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {reg.status === 'pending' && (
+                          <>
+                            <button 
+                              disabled={isUpdating === reg.id}
+                              onClick={() => handleUpdateStatus(reg.id, 'approved')}
+                              className="p-1.5 bg-success/10 text-success rounded-md hover:bg-success hover:text-white transition-colors disabled:opacity-50"
+                              title="Terima"
+                            >
+                              <Check size={18} />
+                            </button>
+                            <button 
+                              disabled={isUpdating === reg.id}
+                              onClick={() => handleUpdateStatus(reg.id, 'rejected')}
+                              className="p-1.5 bg-danger/10 text-danger rounded-md hover:bg-danger hover:text-white transition-colors disabled:opacity-50"
+                              title="Tolak"
+                            >
+                              <X size={18} />
+                            </button>
+                          </>
+                        )}
+                        {reg.status === 'approved' && (
+                          <button
+                            onClick={() => openHoursModal(reg)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-primary/30 text-primary bg-primary/5 hover:bg-primary hover:text-white transition-colors"
+                            title="Input Jam Kontribusi"
+                          >
+                            <Clock size={14} />
+                            {reg.volunteerHour ? 'Edit Jam' : 'Input Jam'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -164,6 +253,82 @@ export default function ManageRegistrationsPage() {
           </table>
         </div>
       </div>
+
+      {/* ─── Volunteer Hours Modal ─── */}
+      {hoursModal.open && hoursModal.registration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
+              <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+                <Clock size={20} className="text-primary" />
+                Verifikasi Jam Kontribusi
+              </h3>
+              <p className="text-sm text-text-secondary mt-1">
+                {hoursModal.registration.user?.nama}
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                  Jumlah Jam <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={hoursInput}
+                  onChange={(e) => setHoursInput(e.target.value)}
+                  placeholder="Contoh: 8"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                  Catatan <span className="text-text-muted">(opsional)</span>
+                </label>
+                <textarea
+                  value={hoursNote}
+                  onChange={(e) => setHoursNote(e.target.value)}
+                  placeholder="Catatan tambahan tentang kontribusi relawan..."
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-border bg-canvas flex items-center justify-end gap-3">
+              <button
+                onClick={closeHoursModal}
+                disabled={isSubmittingHours}
+                className="px-4 py-2 text-sm font-medium text-text-secondary bg-white border border-border rounded-lg hover:bg-surface-dim transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSubmitHours}
+                disabled={isSubmittingHours || !hoursInput}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isSubmittingHours ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    Verifikasi & Buat Sertifikat
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

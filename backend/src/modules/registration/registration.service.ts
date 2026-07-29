@@ -118,6 +118,8 @@ export const getRegistrationsByEvent = async (eventId: string, organizationId: s
       user: {
         select: { id: true, nama: true, email: true, photoUrl: true },
       },
+      volunteerHour: true,
+      certificate: true,
     },
     orderBy: { createdAt: 'desc' },
   });

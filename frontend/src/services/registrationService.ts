@@ -18,6 +18,16 @@ export interface Registration {
     email: string;
     photoUrl?: string;
   };
+  volunteerHour?: {
+    id: string;
+    jumlahJam: number;
+    catatan?: string;
+    status: 'pending' | 'verified';
+  } | null;
+  certificate?: {
+    id: string;
+    certificateCode: string;
+  } | null;
 }
 
 export const createRegistration = async (eventId: string, alasan?: string): Promise<Registration> => {

@@ -47,6 +47,7 @@ model User {
 
   organizations Organization[]
   registrations Registration[]
+  certificates  Certificate[]
 
   @@map("users")
 }
@@ -66,6 +67,13 @@ enum RegistrationStatus {
   rejected
 
   @@map("registration_status")
+}
+
+enum VolunteerHourStatus {
+  pending
+  verified
+
+  @@map("volunteer_hour_status")
 }
 
 model Organization {
@@ -100,6 +108,7 @@ model Event {
 
   organization  Organization   @relation(fields: [organizationId], references: [id])
   registrations Registration[]
+  certificates  Certificate[]
 
   @@map("events")
 }
@@ -113,9 +122,40 @@ model Registration {
   createdAt DateTime           @default(now()) @map("created_at")
   updatedAt DateTime           @updatedAt @map("updated_at")
 
-  event Event @relation(fields: [eventId], references: [id])
-  user  User  @relation(fields: [userId], references: [id])
+  event         Event          @relation(fields: [eventId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
+  volunteerHour VolunteerHour?
+  certificate   Certificate?
 
   @@unique([eventId, userId])
   @@map("registrations")
+}
+
+model VolunteerHour {
+  id             String              @id @default(cuid())
+  registrationId String              @unique @map("registration_id")
+  jumlahJam      Float               @map("jumlah_jam")
+  catatan        String?             @db.Text
+  status         VolunteerHourStatus @default(pending)
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  registration Registration @relation(fields: [registrationId], references: [id])
+
+  @@map("volunteer_hours")
+}
+
+model Certificate {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  eventId         String   @map("event_id")
+  registrationId  String   @unique @map("registration_id")
+  certificateCode String   @unique @map("certificate_code")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id])
+  event        Event        @relation(fields: [eventId], references: [id])
+  registration Registration @relation(fields: [registrationId], references: [id])
+
+  @@map("certificates")
 }
