@@ -1,5 +1,5 @@
 import api from './api';
-import { Event } from './eventService';
+import type { Event } from './eventService';
 
 export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
 

@@ -7,6 +7,7 @@ import eventRoutes from './modules/event/event.routes.js';
 import registrationRoutes from './modules/registration/registration.routes.js';
 import volunteerHourRoutes from './modules/volunteer-hour/volunteerHour.routes.js';
 import certificateRoutes from './modules/certificate/certificate.routes.js';
+import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/volunteer-hours', volunteerHourRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
